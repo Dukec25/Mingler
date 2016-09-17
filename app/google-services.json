@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "356291857135",
+    "firebase_url": "https://mingler-49f3a.firebaseio.com",
+    "project_id": "mingler-49f3a",
+    "storage_bucket": "mingler-49f3a.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:356291857135:android:77fa1cd43b3f9975",
+        "android_client_info": {
+          "package_name": "ca.uwaterloo.mingler.mingler"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "356291857135-8ie773dm4or93m06ss7t2c1bo1g62vac.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBRYlc5h9fmoxNskSa9vwUI5nHmFgM4Ies"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
