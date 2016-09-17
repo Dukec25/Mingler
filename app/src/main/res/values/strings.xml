@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">Mingler</string>
     <string name="sign_out">Sign out</string>
+    <string name="no_interests_selected">Please select at least one interest.</string>
 </resources>

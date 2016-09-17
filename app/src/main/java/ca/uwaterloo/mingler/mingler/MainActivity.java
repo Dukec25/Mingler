@@ -3,6 +3,7 @@ package ca.uwaterloo.mingler.mingler;
 import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.SparseBooleanArray;
@@ -79,18 +80,33 @@ public class MainActivity extends AppCompatActivity implements ShakeDetector.Lis
         return outstrs;
     }
     public void mingleClicked(View v) {
+        List<String> interests = getSelectedInterests();
+        if (interests.size() == 0) {
+            new AlertDialog.Builder(this).setMessage(R.string.no_interests_selected)
+                    .setPositiveButton(android.R.string.ok, null).show();
+        }
         // send mingle request to Firebase
         FirebaseDatabase db = FirebaseDatabase.getInstance();
-        DatabaseReference ref = db.getReference("request/" + mRestaurantSpinner.getSelectedItem().toString() + "/" +
+        String restaurant = mRestaurantSpinner.getSelectedItem().toString();
+        DatabaseReference ref = db.getReference("request/" + restaurant + "/" +
                 FirebaseAuth.getInstance().getCurrentUser().getUid());
-        MingleRequestModel request = new MingleRequestModel(mRestaurantSpinner.getSelectedItem().toString(),
-                getSelectedInterests(),
+        // nuke the existing requests from this user
+        for (int i = 0; i < mRestaurantSpinner.getAdapter().getCount(); i++) {
+            String temprestaurant = mRestaurantSpinner.getAdapter().getItem(i).toString();
+            if (temprestaurant.equals(restaurant)) continue;
+            DatabaseReference r = db.getReference("request/" + temprestaurant + "/" + FirebaseAuth.getInstance().getCurrentUser().getUid());
+            r.removeValue();
+        }
+        // put in the new value pls
+        MingleRequestModel request = new MingleRequestModel(restaurant,
+                interests,
                 ServerValue.TIMESTAMP,
                 mNicknameText.getText().toString(),
                 FirebaseAuth.getInstance().getCurrentUser().getUid());
         ref.setValue(request);
         // todo: push notifications?
         Intent intent = new Intent(this, RequestsListActivity.class);
+        intent.putExtra("restaurant", request.restaurant);
         startActivity(intent);
     }
 
