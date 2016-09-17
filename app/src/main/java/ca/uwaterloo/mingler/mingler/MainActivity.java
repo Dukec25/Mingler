@@ -31,6 +31,7 @@ import java.util.Set;
 public class MainActivity extends AppCompatActivity implements ShakeDetector.Listener {
     private Spinner mRestaurantSpinner;
     private ListView mInterestsListView;
+    private TextView mNicknameText;
     private ShakeDetector mShakeDetector;
     private SensorManager mSensorManager;
     @Override
@@ -38,6 +39,7 @@ public class MainActivity extends AppCompatActivity implements ShakeDetector.Lis
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mRestaurantSpinner = (Spinner) findViewById(R.id.spinner);
+        mNicknameText = (TextView) findViewById(R.id.nickname_text);
         mInterestsListView = (ListView) findViewById(R.id.interests_listview);
         mInterestsListView.setAdapter(new ArrayAdapter<CharSequence>(this,
                 android.R.layout.simple_list_item_multiple_choice, getResources().getTextArray(R.array.interests)));
@@ -79,12 +81,17 @@ public class MainActivity extends AppCompatActivity implements ShakeDetector.Lis
     public void mingleClicked(View v) {
         // send mingle request to Firebase
         FirebaseDatabase db = FirebaseDatabase.getInstance();
-        DatabaseReference ref = db.getReference("request/" + FirebaseAuth.getInstance().getCurrentUser().getUid());
+        DatabaseReference ref = db.getReference("request/" + mRestaurantSpinner.getSelectedItem().toString() + "/" +
+                FirebaseAuth.getInstance().getCurrentUser().getUid());
         MingleRequestModel request = new MingleRequestModel(mRestaurantSpinner.getSelectedItem().toString(),
                 getSelectedInterests(),
-                ServerValue.TIMESTAMP);
+                ServerValue.TIMESTAMP,
+                mNicknameText.getText().toString(),
+                FirebaseAuth.getInstance().getCurrentUser().getUid());
         ref.setValue(request);
-        // todo: view nearby, push notifications?
+        // todo: push notifications?
+        Intent intent = new Intent(this, RequestsListActivity.class);
+        startActivity(intent);
     }
 
     public void hearShake() {

@@ -11,6 +11,14 @@
     tools:context="ca.uwaterloo.mingler.mingler.MainActivity"
     android:orientation="vertical">
 
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="textPersonName"
+        android:ems="10"
+        android:id="@+id/nickname_text"
+        android:hint="Nickname" />
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
