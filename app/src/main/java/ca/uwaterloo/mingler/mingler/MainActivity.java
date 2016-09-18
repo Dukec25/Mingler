@@ -1,6 +1,7 @@
 package ca.uwaterloo.mingler.mingler;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.support.v7.app.AlertDialog;
@@ -35,6 +36,7 @@ public class MainActivity extends AppCompatActivity implements ShakeDetector.Lis
     private TextView mNicknameText;
     private ShakeDetector mShakeDetector;
     private SensorManager mSensorManager;
+    private boolean submitted = false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,13 +52,40 @@ public class MainActivity extends AppCompatActivity implements ShakeDetector.Lis
 
     protected void onResume() {
         super.onResume();
+        submitted = false;
         mShakeDetector.start(mSensorManager);
+        SharedPreferences prefs = getSharedPreferences("mingler_form", 0);
+        mNicknameText.setText(prefs.getString("nickname", FirebaseAuth.getInstance().getCurrentUser().getDisplayName()));
+        String restaurant = prefs.getString("restaurant", null);
+        if (restaurant != null) {
+            for (int i = 0; i < mRestaurantSpinner.getAdapter().getCount(); i++) {
+                if (mRestaurantSpinner.getAdapter().getItem(i).toString().equals(restaurant)) {
+                    mRestaurantSpinner.setSelection(i);
+                    break;
+                }
+            }
+        }
+        String[] interests = prefs.getString("interests", "").split(":");
+        for (int i = 0; i < mInterestsListView.getAdapter().getCount(); i++) {
+            String s = mInterestsListView.getAdapter().getItem(i).toString();
+            for (int j = 0; j < interests.length; j++) {
+                if (interests[j].equals(s)) {
+                    mInterestsListView.setItemChecked(i, true);
+                    break;
+                }
+            }
+        }
     }
 
     protected void onPause() {
         // todo save restaurant and interest choices
         super.onPause();
         mShakeDetector.stop();
+        SharedPreferences.Editor editor = getSharedPreferences("mingler_form", 0).edit();
+        editor.putString("nickname", mNicknameText.getText().toString());
+        editor.putString("restaurant", mRestaurantSpinner.getSelectedItem().toString());
+        editor.putString("interests", RequestsListActivity.joinList(getSelectedInterests(),":"));
+        editor.apply();
     }
 
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -80,6 +109,8 @@ public class MainActivity extends AppCompatActivity implements ShakeDetector.Lis
         return outstrs;
     }
     public void mingleClicked(View v) {
+        if (submitted) return;
+        submitted = true;
         List<String> interests = getSelectedInterests();
         if (interests.size() == 0) {
             new AlertDialog.Builder(this).setMessage(R.string.no_interests_selected)

@@ -1,6 +1,7 @@
 package ca.uwaterloo.mingler.mingler;
 
 import android.app.Activity;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -39,9 +40,7 @@ public class RequestsListActivity extends AppCompatActivity {
         mRecyclerView = (RecyclerView)findViewById(R.id.recyclerview);
         mRecyclerView.setHasFixedSize(false);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-    }
-    public void onResume() {
-        super.onStart();
+
         FirebaseDatabase db = FirebaseDatabase.getInstance();
         // grab our own request, if any
         DatabaseReference ref = db.getReference("request/" + getIntent().getStringExtra("restaurant")
@@ -60,6 +59,7 @@ public class RequestsListActivity extends AppCompatActivity {
             }
         });
     }
+
     private boolean filterOutModel(MingleRequestModel model, MingleRequestModel inputRequest) {
         if (inputRequest.uid.equals(model.uid)) return true; // myself
         if (inputRequest.interests == null) {
@@ -71,10 +71,10 @@ public class RequestsListActivity extends AppCompatActivity {
         }
         return true; // no shared interests :(
     }
-    private String joinList(List<?> a) {
+    public static String joinList(List<?> a, String sep) {
         StringBuilder b = new StringBuilder();
         for (int i = 0; i < a.size(); i++) {
-            if (i != 0) b.append(", ");
+            if (i != 0) b.append(sep);
             b.append(a.get(i));
         }
         return b.toString();
@@ -88,7 +88,7 @@ public class RequestsListActivity extends AppCompatActivity {
                 MingleRequestModel.class, R.layout.request_card_item, RequestsListItemHolder.class, mLiveDatabaseReference) {
             protected void populateViewHolder(RequestsListItemHolder viewHolder, MingleRequestModel model, int position) {
                 viewHolder.mNicknameText.setText(model.nickname);
-                viewHolder.mInterestsText.setText("Interests: " + joinList(model.interests));
+                viewHolder.mInterestsText.setText("Interests: " + joinList(model.interests, ", "));
                 viewHolder.mTimeText.setText(DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date((Long)model.creationTime)));
                 ViewGroup.LayoutParams params = viewHolder.mView.getLayoutParams();
                 params.height = filterOutModel(model, inputRequest)? 0: (int)getResources().getDimension(R.dimen.request_card_item_height);
