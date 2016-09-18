@@ -8,8 +8,10 @@
         <item>Operating Systems</item>
     </string-array>
     <string-array name="restaurants">
-        <item>First Restaurant</item>
-        <item>Second Restaurant</item>
-        <item>Third Restaurant</item>
+        <item>SOGO RESTAURANT</item>
+        <item>CHEN\'S RESTUARANT</item>
+        <item>EAST SIDE MARIO</item>
+        <item>WATERLOO STAR</item>
+        <item>NURI VILLAGE</item>
     </string-array>
 </resources>

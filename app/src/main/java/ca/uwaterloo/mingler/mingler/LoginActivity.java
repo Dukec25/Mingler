@@ -28,7 +28,7 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
         Intent intent = AuthUI.getInstance().createSignInIntentBuilder()
-                .setProviders(AuthUI.EMAIL_PROVIDER, AuthUI.GOOGLE_PROVIDER)
+                .setProviders(AuthUI.EMAIL_PROVIDER)
                 .build();
         startActivityForResult(intent, RC_SIGN_IN);
     }
