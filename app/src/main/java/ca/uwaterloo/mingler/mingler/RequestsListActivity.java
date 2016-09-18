@@ -10,9 +10,13 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.firebase.auth.FirebaseAuth;
@@ -69,6 +73,21 @@ public class RequestsListActivity extends AppCompatActivity {
                 Log.e(TAG, "Database error: " + databaseError);
             }
         });
+    }
+
+    public boolean onCreateOptionsMenu(Menu menu) {
+        new MenuInflater(this).inflate(R.menu.requests_menu, menu);
+        return true;
+    }
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // kill the current request like they killed my boy Haramb... no I can't do this, too soon
+        FirebaseDatabase db = FirebaseDatabase.getInstance();
+        DatabaseReference ref = db.getReference("request/" + getIntent().getStringExtra("restaurant")
+                + "/" + FirebaseAuth.getInstance().getCurrentUser().getUid());
+        ref.removeValue();
+        Toast.makeText(this, "Mingle request cancelled.", Toast.LENGTH_SHORT).show();
+        finish();
+        return true;
     }
 
     private boolean filterOutModel(MingleRequestModel model, MingleRequestModel inputRequest) {
