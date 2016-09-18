@@ -60,8 +60,17 @@ public class RequestsListActivity extends AppCompatActivity {
         });
     }
 
+    protected void onDestroy() {
+        super.onDestroy();
+        FirebaseDatabase db = FirebaseDatabase.getInstance();
+        DatabaseReference ref = db.getReference("request/" + getIntent().getStringExtra("restaurant")
+                + "/" + FirebaseAuth.getInstance().getCurrentUser().getUid());
+        ref.removeValue(); // destroy the request like you destroyed my man Haramb.. too soon?
+    }
+
     private boolean filterOutModel(MingleRequestModel model, MingleRequestModel inputRequest) {
         if (inputRequest.uid.equals(model.uid)) return true; // myself
+        if (inputRequest.uid.equals(model.uid)) return true; // myself2
         if (inputRequest.interests == null) {
             Log.e(TAG, "Input Request has no interests!");
             return false;

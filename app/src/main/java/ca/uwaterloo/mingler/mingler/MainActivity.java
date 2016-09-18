@@ -4,17 +4,21 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
+import android.os.Vibrator;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.RecyclerView;
 import android.util.SparseBooleanArray;
 import android.view.ContextMenu;
+import android.view.HapticFeedbackConstants;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -36,6 +40,7 @@ public class MainActivity extends AppCompatActivity implements ShakeDetector.Lis
     private TextView mNicknameText;
     private ShakeDetector mShakeDetector;
     private SensorManager mSensorManager;
+    private Button mSubmitButton;
     private boolean submitted = false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +48,7 @@ public class MainActivity extends AppCompatActivity implements ShakeDetector.Lis
         setContentView(R.layout.activity_main);
         mRestaurantSpinner = (Spinner) findViewById(R.id.spinner);
         mNicknameText = (TextView) findViewById(R.id.nickname_text);
+        mSubmitButton = (Button) findViewById(R.id.submit_button);
         mInterestsListView = (ListView) findViewById(R.id.interests_listview);
         mInterestsListView.setAdapter(new ArrayAdapter<CharSequence>(this,
                 android.R.layout.simple_list_item_multiple_choice, getResources().getTextArray(R.array.interests)));
@@ -104,18 +110,21 @@ public class MainActivity extends AppCompatActivity implements ShakeDetector.Lis
         SparseBooleanArray selectedIds = mInterestsListView.getCheckedItemPositions();
         List<String> outstrs = new ArrayList<String>(mInterestsListView.getCheckedItemCount());
         for (int i = 0; i < selectedIds.size(); i++) {
-            if (selectedIds.get(i)) outstrs.add(mInterestsListView.getAdapter().getItem(i).toString());
+            if (selectedIds.get(selectedIds.keyAt(i))) outstrs.add(mInterestsListView.getAdapter().getItem(selectedIds.keyAt(i)).toString());
         }
         return outstrs;
     }
     public void mingleClicked(View v) {
         if (submitted) return;
-        submitted = true;
         List<String> interests = getSelectedInterests();
         if (interests.size() == 0) {
             new AlertDialog.Builder(this).setMessage(R.string.no_interests_selected)
                     .setPositiveButton(android.R.string.ok, null).show();
+            return;
         }
+        submitted = true;
+        mShakeDetector.stop();
+        ((Vibrator)getSystemService(VIBRATOR_SERVICE)).vibrate(1000);
         // send mingle request to Firebase
         FirebaseDatabase db = FirebaseDatabase.getInstance();
         String restaurant = mRestaurantSpinner.getSelectedItem().toString();
@@ -135,7 +144,6 @@ public class MainActivity extends AppCompatActivity implements ShakeDetector.Lis
                 mNicknameText.getText().toString(),
                 FirebaseAuth.getInstance().getCurrentUser().getUid());
         ref.setValue(request);
-        // todo: push notifications?
         Intent intent = new Intent(this, RequestsListActivity.class);
         intent.putExtra("restaurant", request.restaurant);
         startActivity(intent);

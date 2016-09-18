@@ -3,7 +3,17 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="ca.uwaterloo.mingler.mingler.RequestsListActivity">
+    tools:context="ca.uwaterloo.mingler.mingler.RequestsListActivity"
+    android:orientation="vertical">
+
+    <TextView
+        android:text="Other users with a shared interest going to this restaurant will appear below."
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/textView3"
+        android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
+        android:textAlignment="center"
+        android:elevation="3dp" />
 
     <android.support.v7.widget.RecyclerView
         android:layout_width="match_parent"
