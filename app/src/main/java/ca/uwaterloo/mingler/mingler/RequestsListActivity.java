@@ -1,6 +1,7 @@
 package ca.uwaterloo.mingler.mingler;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -34,6 +35,8 @@ public class RequestsListActivity extends AppCompatActivity {
     private DatabaseReference mLiveDatabaseReference;
     private RecyclerView mRecyclerView;
     private FirebaseRecyclerAdapter<MingleRequestModel, RequestsListItemHolder> mAdapter;
+    private MingleRequestModel mSelfModel;
+    private static final int RC_CHAT = 2;
     public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
         setContentView(R.layout.activity_requests);
@@ -50,6 +53,7 @@ public class RequestsListActivity extends AppCompatActivity {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 MingleRequestModel request = dataSnapshot.getValue(MingleRequestModel.class);
+                mSelfModel = request;
                 setupLiveQuery(request);
             }
 
@@ -60,17 +64,9 @@ public class RequestsListActivity extends AppCompatActivity {
         });
     }
 
-    protected void onDestroy() {
-        super.onDestroy();
-        FirebaseDatabase db = FirebaseDatabase.getInstance();
-        DatabaseReference ref = db.getReference("request/" + getIntent().getStringExtra("restaurant")
-                + "/" + FirebaseAuth.getInstance().getCurrentUser().getUid());
-        ref.removeValue(); // destroy the request like you destroyed my man Haramb.. too soon?
-    }
-
     private boolean filterOutModel(MingleRequestModel model, MingleRequestModel inputRequest) {
         if (inputRequest.uid.equals(model.uid)) return true; // myself
-        if (inputRequest.uid.equals(model.uid)) return true; // myself2
+        if (((Long)inputRequest.creationTime) - ((Long)model.creationTime) > TIME_PERIOD) return true; // too old
         if (inputRequest.interests == null) {
             Log.e(TAG, "Input Request has no interests!");
             return false;
@@ -102,21 +98,37 @@ public class RequestsListActivity extends AppCompatActivity {
                 ViewGroup.LayoutParams params = viewHolder.mView.getLayoutParams();
                 params.height = filterOutModel(model, inputRequest)? 0: (int)getResources().getDimension(R.dimen.request_card_item_height);
                 viewHolder.mView.setLayoutParams(params);
+                viewHolder.mModel = model;
             }
         };
         mRecyclerView.setAdapter(mAdapter);
     }
-    public static class RequestsListItemHolder extends RecyclerView.ViewHolder {
+
+    public void onRequestClick(RequestsListItemHolder viewHolder) {
+        Intent intent = new Intent(this, ChatActivity.class);
+        intent.putExtra("remoteUserId", viewHolder.mModel.uid);
+        intent.putExtra("myNickname", mSelfModel.nickname);
+        intent.putExtra("remoteNickname", viewHolder.mModel.nickname);
+        startActivityForResult(intent, RC_CHAT);
+    }
+
+    public static class RequestsListItemHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         public View mView;
         public TextView mNicknameText;
         public TextView mTimeText;
         public TextView mInterestsText;
+        public MingleRequestModel mModel;
+        public RequestsListActivity activity;
         public RequestsListItemHolder(View view) {
             super(view);
             mView = view;
             mNicknameText = (TextView) view.findViewById(R.id.request_card_nickname_text);
             mTimeText = (TextView) view.findViewById(R.id.request_card_time_text);
             mInterestsText = (TextView) view.findViewById(R.id.request_card_interests_text);
+            mView.setOnClickListener(this);
+        }
+        public void onClick(View v) {
+            ((RequestsListActivity)v.getContext()).onRequestClick(this);
         }
     }
 }
