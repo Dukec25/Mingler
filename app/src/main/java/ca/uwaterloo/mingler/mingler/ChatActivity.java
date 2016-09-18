@@ -43,15 +43,12 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import de.hdodenhof.circleimageview.CircleImageView;
-
 public class ChatActivity extends AppCompatActivity
         implements GoogleApiClient.OnConnectionFailedListener {
 
     public static class MessageViewHolder extends RecyclerView.ViewHolder {
         public TextView messageTextView;
         public TextView messengerTextView;
-        public CircleImageView messengerImageView;
 
         public MessageViewHolder(View v) {
             super(v);

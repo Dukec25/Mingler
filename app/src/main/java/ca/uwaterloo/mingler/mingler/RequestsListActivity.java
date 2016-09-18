@@ -3,7 +3,9 @@ package ca.uwaterloo.mingler.mingler;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -21,9 +23,14 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import org.json.JSONObject;
+
+import java.io.IOException;
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.List;
+
+import okhttp3.*;
 
 /**
  * Created by zhuowei on 2016-09-17.
@@ -101,6 +108,19 @@ public class RequestsListActivity extends AppCompatActivity {
                 viewHolder.mModel = model;
             }
         };
+        mAdapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
+            @Override
+            public void onItemRangeInserted(int positionStart, int itemCount) {
+               for (int i = positionStart; i < positionStart + itemCount; i++) {
+                   MingleRequestModel remoteModel = mAdapter.getItem(i);
+                   if (filterOutModel(remoteModel, mSelfModel)) continue;
+                   // vibrate when new item inserted
+                   ((Vibrator)getSystemService(VIBRATOR_SERVICE)).vibrate(500);
+                   // and send new peer to backend
+                   sendToBackend(remoteModel);
+               }
+            }
+        });
         mRecyclerView.setAdapter(mAdapter);
     }
 
@@ -110,6 +130,49 @@ public class RequestsListActivity extends AppCompatActivity {
         intent.putExtra("myNickname", mSelfModel.nickname);
         intent.putExtra("remoteNickname", viewHolder.mModel.nickname);
         startActivityForResult(intent, RC_CHAT);
+    }
+    public static final MediaType JSON
+            = MediaType.parse("application/json; charset=utf-8");
+    // you have be be insane to give this to the client... fix this please
+    public static final String FCM_SERVER_KEY = "AIzaSyAxXmQH93cLdPuvIN5vvfTbkqLjs-fp0j4";
+
+    private void sendToBackend(MingleRequestModel remoteModel) {
+        // extreme shenanegans: we're sending FCM from the client side. This is really insecure.
+        try {
+            // security is for people who give a duck
+            final JSONObject jsonObjectFCM = new JSONObject();
+            jsonObjectFCM.put("to", remoteModel.fcmId);
+            JSONObject notification = new JSONObject();
+            notification.put("title", "" + mSelfModel.nickname + " would like to join you at " + mSelfModel.restaurant);
+            notification.put("text", "Interests: " + joinList(mSelfModel.interests, ", "));
+            notification.put("click_action", "ca.uwaterloo.mingler.mingler.LAUNCH_CHAT");
+            JSONObject data = new JSONObject();
+            data.put("remoteUserId", mSelfModel.uid);
+            data.put("myNickname", remoteModel.nickname);
+            data.put("remoteNickname", mSelfModel.nickname);
+            jsonObjectFCM.put("notification", notification);
+            jsonObjectFCM.put("data", data);
+            jsonObjectFCM.put("priority", "high");
+
+            new AsyncTask<Void, Void, Void>() {
+                public Void doInBackground(Void... voided) {
+                    try {
+                        OkHttpClient client = new OkHttpClient();
+                        RequestBody body = RequestBody.create(JSON, jsonObjectFCM.toString());
+                        Request request = new Request.Builder().url("https://fcm.googleapis.com/fcm/send").post(body).
+                                header("Authorization", "key=" + FCM_SERVER_KEY).build();
+                        Response response = client.newCall(request).execute();
+                        Log.i(TAG, "FCM returned " + response.body().string());
+                    } catch (IOException ie) {
+                        ie.printStackTrace();
+                    }
+                    return null;
+                }
+            }.execute();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static class RequestsListItemHolder extends RecyclerView.ViewHolder implements View.OnClickListener {

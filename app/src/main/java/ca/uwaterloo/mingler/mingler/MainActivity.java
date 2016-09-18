@@ -27,6 +27,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ServerValue;
+import com.google.firebase.iid.FirebaseInstanceId;
 import com.squareup.seismic.ShakeDetector;
 
 import java.util.ArrayList;
@@ -124,7 +125,7 @@ public class MainActivity extends AppCompatActivity implements ShakeDetector.Lis
         }
         submitted = true;
         mShakeDetector.stop();
-        ((Vibrator)getSystemService(VIBRATOR_SERVICE)).vibrate(1000);
+        ((Vibrator)getSystemService(VIBRATOR_SERVICE)).vibrate(500);
         // send mingle request to Firebase
         FirebaseDatabase db = FirebaseDatabase.getInstance();
         String restaurant = mRestaurantSpinner.getSelectedItem().toString();
@@ -142,7 +143,7 @@ public class MainActivity extends AppCompatActivity implements ShakeDetector.Lis
                 interests,
                 ServerValue.TIMESTAMP,
                 mNicknameText.getText().toString(),
-                FirebaseAuth.getInstance().getCurrentUser().getUid());
+                FirebaseAuth.getInstance().getCurrentUser().getUid(), FirebaseInstanceId.getInstance().getToken());
         ref.setValue(request);
         Intent intent = new Intent(this, RequestsListActivity.class);
         intent.putExtra("restaurant", request.restaurant);

@@ -13,13 +13,15 @@ public class MingleRequestModel {
     public Object creationTime;
     public String nickname;
     public String uid;
+    public String fcmId;
     public MingleRequestModel() {
     }
-    public MingleRequestModel(String restaurant, List<String> interests, Object creationTime, String nickname, String uid) {
+    public MingleRequestModel(String restaurant, List<String> interests, Object creationTime, String nickname, String uid, String fcmId) {
         this.restaurant = restaurant;
         this.interests = interests;
         this.creationTime = creationTime;
         this.nickname = nickname;
         this.uid = uid;
+        this.fcmId = fcmId;
     }
 }
